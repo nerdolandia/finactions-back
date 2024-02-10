@@ -8,3 +8,5 @@ Web API Restful para controle financeiro pessoal
   - EF Core 8.0.1
   - Identity 8.0.1
   - DependencyInjection 8.0.0
+
+  
