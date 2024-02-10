@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FinActions.Infrastructure\FinActions.Infrastructure.csproj" />
+    <ProjectReference Include="..\FinActions.Domain\FinActions.Domain.csproj" />
+    <ProjectReference Include="..\FinActions.Contracts\FinActions.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

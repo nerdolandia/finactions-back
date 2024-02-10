@@ -1,0 +1,6 @@
+@FinActions.HttpApi.Host_HostAddress = http://localhost:5152
+
+GET {{FinActions.HttpApi.Host_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
