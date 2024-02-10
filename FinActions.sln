@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinActions.HttpApi.Host", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinActions.Infrastructure", "src\FinActions.Infrastructure\FinActions.Infrastructure.csproj", "{4268E1F9-9384-41CC-93E9-E08457D4207E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{1E567FF6-9F53-4EF0-9AE6-2CA1BAE279D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinActions.Application.Tests", "test\FinActions.Application.Tests\FinActions.Application.Tests.csproj", "{FD33BC5E-16DC-43AD-A55E-A7AF99C848DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +48,10 @@ Global
 		{4268E1F9-9384-41CC-93E9-E08457D4207E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4268E1F9-9384-41CC-93E9-E08457D4207E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4268E1F9-9384-41CC-93E9-E08457D4207E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD33BC5E-16DC-43AD-A55E-A7AF99C848DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD33BC5E-16DC-43AD-A55E-A7AF99C848DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD33BC5E-16DC-43AD-A55E-A7AF99C848DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD33BC5E-16DC-43AD-A55E-A7AF99C848DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{17DEA62B-079A-4AD9-887B-84E31CB5EBCD} = {271A0BA1-7991-49C6-877D-6CFEFACC133B}
@@ -51,5 +59,6 @@ Global
 		{FA18614A-619F-4691-A2C0-49D348761D31} = {271A0BA1-7991-49C6-877D-6CFEFACC133B}
 		{6DC57ED4-2EB3-4AC6-A4B4-8E526DCD3711} = {271A0BA1-7991-49C6-877D-6CFEFACC133B}
 		{4268E1F9-9384-41CC-93E9-E08457D4207E} = {271A0BA1-7991-49C6-877D-6CFEFACC133B}
+		{FD33BC5E-16DC-43AD-A55E-A7AF99C848DE} = {1E567FF6-9F53-4EF0-9AE6-2CA1BAE279D2}
 	EndGlobalSection
 EndGlobal
