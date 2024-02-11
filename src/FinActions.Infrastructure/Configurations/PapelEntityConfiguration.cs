@@ -1,3 +1,4 @@
+using FinActions.Domain.Usuario;
 using FinActions.Domain.Usuario.Papel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,7 +16,7 @@ public class PapelEntityConfiguration : IEntityTypeConfiguration<Papel>
 
         builder.HasMany(x => x.Usuarios)
             .WithMany(x => x.Papeis)
-            .UsingEntity("UsuariosPapeis");
+            .UsingEntity<UsuarioPapel>();
 
         builder.HasIndex(x => x.Name)
             .IsUnique();
