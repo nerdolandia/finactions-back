@@ -1,16 +1,18 @@
 using FinActions.Domain.Usuario;
-using FinActions.Domain.Usuario.Role;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using FinActions.Domain.Usuario.Papel;
+using FinActions.Infrastructure.Configurations;
 using Microsoft.EntityFrameworkCore;
 
 namespace FinActions.Infrastructure.Context;
 
-public class FinActionsContext : IdentityDbContext<Usuario, Role, string>
+public class FinActionsContext : DbContext
 {
     public FinActionsContext(DbContextOptions options) : base(options)
     {
     }
+
+    public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<Papel> Papeis { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -20,26 +22,7 @@ public class FinActionsContext : IdentityDbContext<Usuario, Role, string>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<Usuario>()
-            .ToTable("Usuarios");
-        
-        modelBuilder.Entity<Role>()
-            .ToTable("Roles");
-        
-        modelBuilder.Entity<IdentityUserLogin<string>>()
-            .ToTable("UsuariosLogins");
-        
-        modelBuilder.Entity<IdentityUserRole<string>>()
-            .ToTable("UsuariosRoles");
-        
-        modelBuilder.Entity<IdentityUserToken<string>>()
-            .ToTable("UsuariosTokens");
-        
-        modelBuilder.Entity<IdentityRoleClaim<string>>()
-            .ToTable("RolesClaims");
-        
-        modelBuilder.Entity<IdentityUserClaim<string>>()
-            .ToTable("UsuariosClaims");
+        modelBuilder.ApplyConfiguration(new UsuarioEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new PapelEntityConfiguration());
     }
 }
