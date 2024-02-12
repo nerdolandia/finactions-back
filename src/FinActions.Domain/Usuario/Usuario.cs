@@ -11,5 +11,6 @@ public class Usuario
     public DateTime CreationTime { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedTime { get; set; }
-    public IEnumerable<Papel.Papel> Papeis { get; set; } = [];
+    public IEnumerable<Papel.Papel> Papeis { get; set; } = new List<Papel.Papel>();
+    public IEnumerable<UsuarioPapel> UsuariosPapeis { get; set; } = new List<UsuarioPapel>();
 }

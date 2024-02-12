@@ -1,4 +1,5 @@
 using FinActions.Domain.Usuario;
+using FinActions.Domain.Usuario.Papel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -17,11 +18,11 @@ public class UsuarioEntityConfiguration : IEntityTypeConfiguration<Usuario>
         builder.Property(x => x.Email)
             .IsRequired()
             .HasMaxLength(150);
-        
+
         builder.HasMany(x => x.Papeis)
             .WithMany(x => x.Usuarios)
-            .UsingEntity("UsuariosPapeis");
-        
+            .UsingEntity<UsuarioPapel>();
+
         builder.HasIndex(x => x.Email)
             .IsUnique();
     }

@@ -13,6 +13,7 @@ public class FinActionsContext : DbContext
 
     public DbSet<Usuario> Usuarios { get; set; }
     public DbSet<Papel> Papeis { get; set; }
+    public DbSet<UsuarioPapel> UsuariosPapeis { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -24,5 +25,6 @@ public class FinActionsContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfiguration(new UsuarioEntityConfiguration());
         modelBuilder.ApplyConfiguration(new PapelEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new UsuarioPapelEntityConfiguration());
     }
 }
