@@ -1,4 +1,4 @@
-using FinActions.Domain.Usuario;
+using FinActions.Domain.Usuarios;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,12 +10,6 @@ public class UsuarioPapelEntityConfiguration : IEntityTypeConfiguration<UsuarioP
     {
         builder.HasKey(x => x.Id);
 
-        builder.HasOne(x => x.Papel)
-            .WithMany(x => x.UsuariosPapeis);
-
-        builder.HasOne(x => x.Usuario)
-            .WithMany(x => x.UsuariosPapeis);
-        
         builder.HasIndex(x => x.UsuarioId);
     }
 }

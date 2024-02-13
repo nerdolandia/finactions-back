@@ -1,5 +1,5 @@
-using FinActions.Domain.Usuario;
-using FinActions.Domain.Usuario.Papel;
+using FinActions.Domain.Usuarios;
+using FinActions.Domain.Usuarios.Papeis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -17,7 +17,15 @@ public class UsuarioEntityConfiguration : IEntityTypeConfiguration<Usuario>
 
         builder.Property(x => x.Email)
             .IsRequired()
-            .HasMaxLength(150);
+            .HasMaxLength(UsuarioConsts.LimiteCampoEmail);
+
+        builder.Property(x => x.Salt)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(x => x.Senha)
+            .IsRequired()
+            .HasMaxLength(200);
 
         builder.HasMany(x => x.Papeis)
             .WithMany(x => x.Usuarios)

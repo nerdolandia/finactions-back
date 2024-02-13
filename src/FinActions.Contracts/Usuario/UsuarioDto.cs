@@ -7,5 +7,6 @@ public record UsuarioDto(
     string Nome,
     string Email,
     DateTime CreationTime,
+    Guid CreatedBy,
     IEnumerable<PapelDto> Papeis
 );

@@ -1,8 +1,9 @@
+using FinActions.Application.Token;
 using FinActions.Application.Usuario;
 using FinActions.Contracts.Response;
+using FinActions.Contracts.Token;
 using FinActions.Contracts.Usuario;
-using FinActions.Domain.Usuario;
-using Microsoft.AspNetCore.Authorization;
+using FinActions.Domain.Usuarios;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinActions.HttpApi.Host.Controllers;
@@ -12,16 +13,24 @@ namespace FinActions.HttpApi.Host.Controllers;
 public class UsuarioController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;
+    private readonly ITokenService _tokenService;
+    private readonly ILogger<UsuarioController> _logger;
 
-    public UsuarioController(IUsuarioService usuarioService)
+    public UsuarioController(
+        IUsuarioService usuarioService,
+        ITokenService tokenService,
+        ILogger<UsuarioController> logger)
     {
         _usuarioService = usuarioService;
+        _tokenService = tokenService;
+        _logger = logger;
     }
 
     [HttpGet("")]
     public async Task<ResultadoPaginadoDto<UsuarioDto>> GetAsync(
         [FromQuery] GetUsuarioDto parametros)
     {
+        _logger.LogInformation("{message}", User.Claims);
         return await _usuarioService.Obter(parametros);
     }
 
@@ -64,5 +73,17 @@ public class UsuarioController : ControllerBase
             return NotFound(UsuarioConsts.ErroNaoExiste);
 
         return Ok(await _usuarioService.ObterPorId(id));
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] PostTokenDto dadosLogin)
+    {
+        if (!await _usuarioService.EhEmailExistente(dadosLogin.Email))
+            return BadRequest(UsuarioConsts.ErroNaoExiste);
+
+        if (!await _usuarioService.SenhaEhIgual(dadosLogin))
+            return Unauthorized(UsuarioConsts.ErroSenhaIncorreta);
+
+        return Ok(await _tokenService.Gerar(dadosLogin));
     }
 }

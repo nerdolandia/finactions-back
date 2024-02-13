@@ -1,5 +1,5 @@
-using FinActions.Domain.Usuario;
-using FinActions.Domain.Usuario.Papel;
+using FinActions.Domain.Usuarios;
+using FinActions.Domain.Usuarios.Papeis;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,14 +11,14 @@ public class PapelEntityConfiguration : IEntityTypeConfiguration<Papel>
     {
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.Name)
+        builder.Property(x => x.Nome)
             .HasMaxLength(200);
 
         builder.HasMany(x => x.Usuarios)
             .WithMany(x => x.Papeis)
             .UsingEntity<UsuarioPapel>();
 
-        builder.HasIndex(x => x.Name)
+        builder.HasIndex(x => x.Nome)
             .IsUnique();
     }
 }
