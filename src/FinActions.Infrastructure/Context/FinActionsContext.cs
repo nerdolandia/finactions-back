@@ -1,3 +1,5 @@
+using FinActions.Domain.Base;
+using FinActions.Domain.Categorias;
 using FinActions.Domain.Usuario;
 using FinActions.Domain.Usuario.Papel;
 using FinActions.Infrastructure.Configurations;
@@ -14,6 +16,7 @@ public class FinActionsContext : DbContext
     public DbSet<Usuario> Usuarios { get; set; }
     public DbSet<Papel> Papeis { get; set; }
     public DbSet<UsuarioPapel> UsuariosPapeis { get; set; }
+    public DbSet<Categoria> Categorias { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -26,5 +29,6 @@ public class FinActionsContext : DbContext
         modelBuilder.ApplyConfiguration(new UsuarioEntityConfiguration());
         modelBuilder.ApplyConfiguration(new PapelEntityConfiguration());
         modelBuilder.ApplyConfiguration(new UsuarioPapelEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new CategoriaEntityConfiguration());
     }
 }
