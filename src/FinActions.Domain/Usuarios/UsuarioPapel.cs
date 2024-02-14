@@ -1,6 +1,6 @@
-using FinActions.Domain.Usuario.Papel;
+using FinActions.Domain.Usuarios.Papeis;
 
-namespace FinActions.Domain.Usuario;
+namespace FinActions.Domain.Usuarios;
 
 public class UsuarioPapel
 {
@@ -8,5 +8,5 @@ public class UsuarioPapel
     public Guid UsuarioId { get; set; }
     public Usuario Usuario { get; set; } = null!;
     public Guid PapelId { get; set; }
-    public Papel.Papel Papel { get; set; } = null!;
+    public Papeis.Papel Papel { get; set; } = null!;
 }

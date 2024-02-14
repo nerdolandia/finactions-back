@@ -1,7 +1,7 @@
 using FinActions.Contracts.Response;
-using FinActions.Contracts.Usuario;
+using FinActions.Contracts.Token;
 
-namespace FinActions.Application.Usuario;
+namespace FinActions.Contracts.Usuario;
 
 public interface IUsuarioService
 {
@@ -12,4 +12,5 @@ public interface IUsuarioService
     Task<UsuarioDto> Inserir(InsertUpdateUsuarioDto insertUsuario);
     Task<bool> EhUsuarioExistente(Guid id);
     Task<bool> EhEmailExistente(string email);
+    Task<bool> SenhaEhIgual(PostTokenDto dadosLogin);
 }

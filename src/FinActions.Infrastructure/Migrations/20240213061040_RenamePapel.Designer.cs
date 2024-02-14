@@ -3,6 +3,7 @@ using System;
 using FinActions.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinActions.Infrastructure.Migrations
 {
     [DbContext(typeof(FinActionsContext))]
-    partial class FinActionsContextModelSnapshot : ModelSnapshot
+    [Migration("20240213061040_RenamePapel")]
+    partial class RenamePapel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace FinActions.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("FinActions.Domain.Usuarios.Papeis.Papel", b =>
+            modelBuilder.Entity("FinActions.Domain.Usuario.Papel.Papel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -41,7 +44,7 @@ namespace FinActions.Infrastructure.Migrations
                     b.ToTable("Papeis");
                 });
 
-            modelBuilder.Entity("FinActions.Domain.Usuarios.Usuario", b =>
+            modelBuilder.Entity("FinActions.Domain.Usuario.Usuario", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -51,6 +54,9 @@ namespace FinActions.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreationTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("DeletedBy")
@@ -78,15 +84,9 @@ namespace FinActions.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<string>("Salt")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
                     b.Property<string>("Senha")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -96,7 +96,7 @@ namespace FinActions.Infrastructure.Migrations
                     b.ToTable("Usuarios");
                 });
 
-            modelBuilder.Entity("FinActions.Domain.Usuarios.UsuarioPapel", b =>
+            modelBuilder.Entity("FinActions.Domain.Usuario.UsuarioPapel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -117,15 +117,15 @@ namespace FinActions.Infrastructure.Migrations
                     b.ToTable("UsuariosPapeis");
                 });
 
-            modelBuilder.Entity("FinActions.Domain.Usuarios.UsuarioPapel", b =>
+            modelBuilder.Entity("FinActions.Domain.Usuario.UsuarioPapel", b =>
                 {
-                    b.HasOne("FinActions.Domain.Usuarios.Papeis.Papel", "Papel")
+                    b.HasOne("FinActions.Domain.Usuario.Papel.Papel", "Papel")
                         .WithMany()
                         .HasForeignKey("PapelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FinActions.Domain.Usuarios.Usuario", "Usuario")
+                    b.HasOne("FinActions.Domain.Usuario.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)

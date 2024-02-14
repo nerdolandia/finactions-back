@@ -1,29 +1,50 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using FinActions.Domain.Usuario;
+using FinActions.Contracts.Token;
+using FinActions.Domain.AppSettings;
+using FinActions.Domain.Usuarios;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FinActions.Application.Token;
 
 public class TokenService : ITokenService
 {
-    public Task<string> Gerar(Domain.Usuario.Usuario usuario)
+    private readonly IUsuarioRepository _usuarioRepository;
+    private readonly JwtOptions _jwtOptions;
+
+    public TokenService(IUsuarioRepository usuarioRepository, IOptions<JwtOptions> jwtOptions)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes("hadouken123");
+        _usuarioRepository = usuarioRepository;
+        _jwtOptions = jwtOptions.Value;
+    }
+
+    public async Task<string> Gerar(PostTokenDto dadosLogin)
+    {
+        var usuario = await _usuarioRepository.ObterPorEmail(dadosLogin.Email);
+
+        var key = Encoding.ASCII.GetBytes(_jwtOptions.SecurityKey);
+
         var subject = new ClaimsIdentity();
-        subject.AddClaim(new Claim(ClaimTypes.Name, usuario.Nome.ToString()));
-        subject.AddClaims(usuario.Papeis
-                            .Select(x => new Claim(ClaimTypes.Role, x.Name)));
+        subject.AddClaim(new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()));
+        subject.AddClaim(new Claim(ClaimTypes.Name, usuario.Nome));
+        subject.AddClaim(new Claim(ClaimTypes.Email, usuario.Email));
+        subject.AddClaims(usuario.Papeis.Select(x => new Claim(ClaimTypes.Role, x.Nome)));
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
+            Audience = _jwtOptions.Audience,
+            Issuer = _jwtOptions.Issuer,
             Subject = subject,
-            Expires = DateTime.UtcNow.AddHours(2),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            IssuedAt = DateTime.UtcNow,
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+                                                        SecurityAlgorithms.HmacSha256Signature),
+            Expires = DateTime.UtcNow.AddSeconds(_jwtOptions.ExpirationInSeconds),
         };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
-        return Task.FromResult(tokenHandler.WriteToken(token));
+        return tokenHandler.WriteToken(token);
     }
 }

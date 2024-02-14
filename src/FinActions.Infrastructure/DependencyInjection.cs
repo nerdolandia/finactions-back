@@ -11,6 +11,7 @@ public static class DependencyInjection
         ConnectionStrings connectionStrings)
     {
         services.AddNpgsql<FinActionsContext>(connectionStrings.Default);
+        services.AddTransient<Domain.Usuarios.IUsuarioRepository, Repositories.UsuarioRepository>();
 
         return services;
     }
