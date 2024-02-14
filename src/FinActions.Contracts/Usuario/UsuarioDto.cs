@@ -6,7 +6,9 @@ public record UsuarioDto(
     Guid Id,
     string Nome,
     string Email,
-    DateTime CreationTime,
+    DateTime CreationDate,
     Guid CreatedBy,
+    DateTime? EditedDate,
+    Guid? EditedBy,
     IEnumerable<PapelDto> Papeis
 );

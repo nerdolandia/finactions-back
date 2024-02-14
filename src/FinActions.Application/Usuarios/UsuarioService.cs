@@ -1,87 +1,77 @@
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using FinActions.Domain.Usuarios;
 using FinActions.Contracts.Response;
 using FinActions.Contracts.Token;
 using FinActions.Contracts.Usuario;
 using FinActions.Contracts.Usuario.Papel;
-using FinActions.Domain.Usuarios;
-using FinActions.Infrastructure.Context;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
-namespace FinActions.Application.Usuario;
+namespace FinActions.Application.Usuarios;
 
 public class UsuarioService : IUsuarioService
 {
-    private readonly FinActionsContext _context;
     private readonly IHttpContextAccessor _httpContextAcessor;
+    private readonly IUsuarioRepository _usuarioRepository;
+    private string? _userId;
 
     public UsuarioService(
-        FinActionsContext context,
-        IHttpContextAccessor httpContextAcessor)
+        IHttpContextAccessor httpContextAcessor,
+        IUsuarioRepository usuarioRepository)
     {
-        _context = context;
         _httpContextAcessor = httpContextAcessor;
+        _usuarioRepository = usuarioRepository;
     }
 
-    public Task<bool> EhEmailExistente(string email)
-    {
-        return Task.FromResult(
-            _context.Usuarios.Any(x => x.Email == email));
-    }
+    public Task<bool> EhEmailExistente(string email) => _usuarioRepository.EhEmailExistente(email);
 
-    public Task<bool> EhUsuarioExistente(Guid id)
-    {
-        return Task.FromResult(
-            _context.Usuarios.Any(x => x.Id == id));
-    }
+    public Task<bool> EhUsuarioExistente(Guid id) => _usuarioRepository.EhUsuarioExistente(id);
 
-    public Task<UsuarioDto> Inserir(InsertUpdateUsuarioDto insertUsuario)
+    public async Task<UsuarioDto> Inserir(InsertUpdateUsuarioDto insertUsuario)
     {
-        var creatorId = _httpContextAcessor.HttpContext!
-                            .User.Claims.First(x => x.Type == "Id").Value;
+        _userId = _httpContextAcessor.HttpContext!.User.Claims
+                        .FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)!.Value;
 
         var salt = GerarSalt(UsuarioConsts.TamanhoSalt);
         var senhaCriptografada = CriptografarSenha(insertUsuario.Senha, salt);
-        var newUsuario = _context.Usuarios.Add(new Domain.Usuarios.Usuario()
+        var newUsuario = await _usuarioRepository.Inserir(new Usuario()
         {
             Nome = insertUsuario.Nome,
             Senha = senhaCriptografada,
             Salt = Convert.ToHexString(salt),
             Email = insertUsuario.Email,
-            CreationTime = DateTime.UtcNow,
-            CreatedBy = Guid.Parse(creatorId)
-        }).Entity;
+            CreatedBy = Guid.Parse(_userId!),
+            CreationDate = DateTime.UtcNow
+        });
 
-        _context.SaveChanges();
-
-        return Task.FromResult(
-            new UsuarioDto(
+        return new UsuarioDto(
                 newUsuario.Id,
                 newUsuario.Nome,
                 newUsuario.Email,
-                newUsuario.CreationTime,
+                newUsuario.CreationDate,
                 newUsuario.CreatedBy,
+                newUsuario.EditedDate,
+                newUsuario.EditedBy,
                 newUsuario.Papeis.Select(x => new PapelDto(x.Id, x.Nome))
-            ));
+            );
     }
 
     public async Task<ResultadoPaginadoDto<UsuarioDto>> Obter(
         GetUsuarioDto parametros)
     {
-        var query = _context.Usuarios
-                    .Include(x => x.Papeis)
-                    .AsQueryable();
+        var filtros = (Usuario x) => true;
 
         if (!string.IsNullOrEmpty(parametros.Nome))
-            query = query.Where(x => x.Nome.Contains(parametros.Nome));
+            filtros = x => x.Nome.Contains(parametros.Nome);
         if (!string.IsNullOrEmpty(parametros.Email))
-            query = query.Where(x => x.Email.Contains(parametros.Email));
+            filtros = x => filtros(x) && x.Email.Contains(parametros.Email);
 
-        query = query.Skip(parametros.SkipCount)
-                    .Take(parametros.TakeCount);
-
-        var usuarios = await query.ToListAsync();
+        var usuarios = (await _usuarioRepository.ObterPaginadoComFiltros(
+                                                        parametros.SkipCount,
+                                                        parametros.TakeCount,
+                                                        filtros)).ToList();
         var dtos = new List<UsuarioDto>();
         usuarios.ForEach(x =>
         {
@@ -90,8 +80,10 @@ public class UsuarioService : IUsuarioService
             dtos.Add(new UsuarioDto(x.Id,
                                     x.Nome,
                                     x.Email,
-                                    x.CreationTime,
+                                    x.CreationDate,
                                     x.CreatedBy,
+                                    x.EditedDate,
+                                    x.EditedBy,
                                     papeis));
         });
 
@@ -108,8 +100,9 @@ public class UsuarioService : IUsuarioService
         Guid id,
         InsertUpdateUsuarioDto updateUsuario)
     {
-        var usuarioToUpdate = _context.Usuarios
-                        .First(x => x.Id == id);
+        _userId = _httpContextAcessor.HttpContext!.User.Claims
+                        .FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)!.Value;
+        var usuarioToUpdate = await _usuarioRepository.ObterPorId(id);
 
         if (!string.IsNullOrEmpty(usuarioToUpdate.Nome) && usuarioToUpdate.Nome != updateUsuario.Nome)
             usuarioToUpdate.Nome = updateUsuario.Nome;
@@ -117,7 +110,7 @@ public class UsuarioService : IUsuarioService
         if (!string.IsNullOrEmpty(usuarioToUpdate.Email) && usuarioToUpdate.Email != updateUsuario.Email)
             usuarioToUpdate.Email = updateUsuario.Email;
 
-        if (!await CompararSenhas(updateUsuario.Senha, usuarioToUpdate.Senha, Encoding.ASCII.GetBytes(usuarioToUpdate.Salt)))
+        if (!await CompararSenhas(updateUsuario.Senha, usuarioToUpdate.Senha, Convert.FromHexString(usuarioToUpdate.Salt)))
         {
             var salt = GerarSalt(UsuarioConsts.TamanhoSalt);
             var novaSenha = CriptografarSenha(updateUsuario.Senha, salt);
@@ -125,53 +118,60 @@ public class UsuarioService : IUsuarioService
             usuarioToUpdate.Senha = updateUsuario.Senha;
         }
 
-        var updatedUsuario = _context.Usuarios.Update(usuarioToUpdate).Entity;
+        usuarioToUpdate.EditedBy = Guid.Parse(_userId!);
+        usuarioToUpdate.EditedDate = DateTime.UtcNow;
 
-        _context.SaveChanges();
+        var updatedUsuario = await _usuarioRepository.Atualizar(usuarioToUpdate);
 
         return new UsuarioDto(
                 updatedUsuario.Id,
                 updatedUsuario.Nome,
                 updatedUsuario.Email,
-                updatedUsuario.CreationTime,
+                updatedUsuario.CreationDate,
                 updatedUsuario.CreatedBy,
+                updatedUsuario.EditedDate,
+                updatedUsuario.EditedBy,
                 updatedUsuario.Papeis.Select(x => new PapelDto(x.Id, x.Nome))
             );
     }
 
-    public Task<UsuarioDto> Excluir(Guid id)
+    public async Task<UsuarioDto> Excluir(Guid id)
     {
-        var usuarioToUpdate = _context.Usuarios
-                        .First(x => x.Id == id);
+        _userId = _httpContextAcessor.HttpContext!.User.Claims
+                        .FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)!.Value;
+        var usuarioToUpdate = await _usuarioRepository.ObterPorId(id);
 
         usuarioToUpdate.DeletedDate = DateTime.UtcNow;
+        usuarioToUpdate.DeletedBy = Guid.Parse(_userId!);
         usuarioToUpdate.IsDeleted = true;
 
-        var updatedUsuario = _context.Usuarios.Update(usuarioToUpdate).Entity;
+        var updatedUsuario = await _usuarioRepository.Excluir(usuarioToUpdate);
 
-        _context.SaveChanges();
-
-        return Task.FromResult(new UsuarioDto(
+        return new UsuarioDto(
                 updatedUsuario.Id,
                 updatedUsuario.Nome,
                 updatedUsuario.Email,
-                updatedUsuario.CreationTime,
+                updatedUsuario.CreationDate,
                 updatedUsuario.CreatedBy,
+                updatedUsuario.EditedDate,
+                updatedUsuario.EditedBy,
                 updatedUsuario.Papeis.Select(x => new PapelDto(x.Id, x.Nome))
-            ));
+            );
     }
 
-    public Task<UsuarioDto> ObterPorId(Guid id)
+    public async Task<UsuarioDto> ObterPorId(Guid id)
     {
-        var usuario = _context.Usuarios.First(x => x.Id == id);
-        return Task.FromResult(new UsuarioDto(
+        var usuario = await _usuarioRepository.ObterPorId(id);
+        return new UsuarioDto(
                 usuario.Id,
                 usuario.Nome,
                 usuario.Email,
-                usuario.CreationTime,
+                usuario.CreationDate,
                 usuario.CreatedBy,
+                usuario.EditedDate,
+                usuario.EditedBy,
                 usuario.Papeis.Select(x => new PapelDto(x.Id, x.Nome))
-            ));
+            );
     }
 
     private static byte[] GerarSalt(int tamanho)
@@ -190,14 +190,14 @@ public class UsuarioService : IUsuarioService
         return Convert.ToHexString(hash);
     }
 
-    public Task<bool> SenhaEhIgual(PostTokenDto dadosLogin)
+    public async Task<bool> SenhaEhIgual(PostTokenDto dadosLogin)
     {
-        var usuario = _context.Usuarios.First(x => x.Email == dadosLogin.Email);
+        var usuario = await _usuarioRepository.ObterPorEmail(dadosLogin.Email);
 
-        return CompararSenhas(dadosLogin.Senha, usuario.Senha, Convert.FromHexString(usuario.Salt));
+        return await CompararSenhas(dadosLogin.Senha, usuario.Senha, Convert.FromHexString(usuario.Salt));
     }
 
-    private Task<bool> CompararSenhas(string senhaDigitada, string hashSenhaAtual, byte[] salt)
+    private static Task<bool> CompararSenhas(string senhaDigitada, string hashSenhaAtual, byte[] salt)
     {
         var senhaDigitadaHash = CriptografarSenha(senhaDigitada, salt);
 
