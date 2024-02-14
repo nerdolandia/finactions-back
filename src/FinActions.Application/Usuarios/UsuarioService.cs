@@ -7,7 +7,6 @@ using FinActions.Contracts.Token;
 using FinActions.Contracts.Usuario;
 using FinActions.Contracts.Usuario.Papel;
 using Microsoft.AspNetCore.Http;
-using System.Linq.Expressions;
 
 namespace FinActions.Application.Usuarios;
 
@@ -73,19 +72,19 @@ public class UsuarioService : IUsuarioService
                                                         parametros.TakeCount,
                                                         filtros)).ToList();
         var dtos = new List<UsuarioDto>();
-        usuarios.ForEach(x =>
+        foreach (var usuario in usuarios)
         {
-            var papeis = x.Papeis.Select(x => new PapelDto(x.Id, x.Nome));
+            var papeis = usuario.Papeis.Select(x => new PapelDto(x.Id, x.Nome));
 
-            dtos.Add(new UsuarioDto(x.Id,
-                                    x.Nome,
-                                    x.Email,
-                                    x.CreationDate,
-                                    x.CreatedBy,
-                                    x.EditedDate,
-                                    x.EditedBy,
+            dtos.Add(new UsuarioDto(usuario.Id,
+                                    usuario.Nome,
+                                    usuario.Email,
+                                    usuario.CreationDate,
+                                    usuario.CreatedBy,
+                                    usuario.EditedDate,
+                                    usuario.EditedBy,
                                     papeis));
-        });
+        };
 
         return new ResultadoPaginadoDto<UsuarioDto>()
         {

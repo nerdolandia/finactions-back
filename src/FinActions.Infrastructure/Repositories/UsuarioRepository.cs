@@ -17,11 +17,11 @@ public class UsuarioRepository : BaseRepository<Usuario>, IUsuarioRepository
         return query.First(x => x.Email == email);
     }
 
-    protected override IEnumerable<Expression<Func<Usuario, object>>> ObterIncludes() => new List<Expression<Func<Usuario, object>>>() { (Usuario x) => x.Papeis };
+    protected override IEnumerable<Expression<Func<Usuario, object>>> ObterIncludes() => [(Usuario x) => x.Papeis];
+
+    protected override IEnumerable<Expression<Func<Usuario, object>>> ObterOrdem() => [(Usuario x) => x.Nome];
 
     public Task<bool> EhEmailExistente(string email) => Task.FromResult(DbSet.Any(x => x.Email == email));
 
     public Task<bool> EhUsuarioExistente(Guid id) => Task.FromResult(DbSet.Any(x => x.Id == id));
-
-    protected override IEnumerable<Expression<Func<Usuario, object>>> ObterOrdem() => new List<Expression<Func<Usuario, object>>>() { (Usuario x) => x.Nome };
 }
