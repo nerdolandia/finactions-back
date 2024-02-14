@@ -12,7 +12,7 @@ namespace FinActions.Domain.Base
         Task<T> Atualizar(T entity);
         Task<T> Excluir(T entity);
         Task<T> ObterPorId(Guid id);
-        Task<IEnumerable<T>> ObterPaginadoComFiltros(int take, int skip, Func<T, bool> filtros);
+        Task<IEnumerable<T>> ObterPaginadoComFiltros(int skip, int take, Func<T, bool> filtros);
         Task<int> Contar();
     }
 }
