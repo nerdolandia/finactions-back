@@ -28,6 +28,8 @@ public class LoginController : ControllerBase
         if (!await _usuarioService.SenhaEhIgual(dadosLogin))
             return Unauthorized(UsuarioConsts.ErroSenhaIncorreta);
 
-        return Ok(await _tokenService.Gerar(dadosLogin));
+        var loginDto = await _tokenService.Gerar(dadosLogin);
+
+        return Ok(loginDto.Token);
     }
 }
