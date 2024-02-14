@@ -1,6 +1,8 @@
+using System.Linq.Expressions;
 using FinActions.Domain.Base;
 using FinActions.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace FinActions.Infrastructure.Repositories;
 
@@ -15,27 +17,26 @@ public abstract class BaseRepository<T> : IBaseRepository<T> where T : BaseEntit
         DbSet = context.Set<T>();
     }
 
-    public Task<T> ObterPorId(Guid id)
+    public async Task<T> ObterPorId(Guid id)
     {
-        var dbEntity = ObterQueryComDetalhes().First(x => x.Id == id);
-        return Task.FromResult(dbEntity);
+        var dbEntity = (await ObterQueryComIncludes()).First(x => x.Id == id);
+        return dbEntity;
     }
 
-    public Task<IEnumerable<T>> ObterPaginadoComFiltros(int skip, int take, IQueryable<T> queryComFiltros)
+    public async Task<IEnumerable<T>> ObterPaginadoComFiltros(int skip, int take, Func<T, bool> filtros)
     {
-        var query = ObterQueryComDetalhes()
-                    .Concat(queryComFiltros);
+        var query = (await ObterQueryComIncludesEOrdem())
+                        .AsNoTracking()
+                        .Where(filtros)
+                        .Skip(skip)
+                        .Take(take);
 
-        query = query.Skip(skip).Take(take);
-        var dbEntity = query.AsEnumerable();
-        return Task.FromResult(dbEntity);
+        var entities = query.AsEnumerable();
+        return entities;
     }
 
-    public Task<T> Atualizar(T entity, Guid idUsuario)
+    public Task<T> Atualizar(T entity)
     {
-        entity.EditedBy = idUsuario;
-        entity.EditedDate = DateTime.UtcNow;
-
         var dbEntity = _context.Update(entity).Entity;
         _context.SaveChanges();
         return Task.FromResult(dbEntity);
@@ -48,36 +49,71 @@ public abstract class BaseRepository<T> : IBaseRepository<T> where T : BaseEntit
         return Task.FromResult(dbEntity);
     }
 
-    public Task<T> Excluir(T entity, Guid idUsuario)
+    public Task<T> Excluir(T entity)
     {
         entity.IsDeleted = true;
         entity.DeletedDate = DateTime.UtcNow;
-        entity.DeletedBy = idUsuario;
 
         var dbEntity = _context.Update(entity).Entity;
         _context.SaveChanges();
         return Task.FromResult(dbEntity);
     }
 
-    public Task<T> Inserir(T entity, Guid idUsuario)
+    public Task<T> Inserir(T entity)
     {
-        entity.CreatedBy = idUsuario;
-        entity.CreationDate = DateTime.UtcNow;
-
         var dbEntity = DbSet.Add(entity).Entity;
         SaveChanges();
 
         return Task.FromResult(dbEntity);
     }
 
+    protected async Task<IOrderedQueryable<T>> ObterQueryComIncludesEOrdem()
+    {
+        if (ObterOrdem() is not null && ObterOrdem().Any())
+        {
+            var query = (await ObterQueryComIncludes()).OrderBy(ObterOrdem().First());
+
+            foreach (var campoParaOrdenar in ObterOrdem().Where(x => x != ObterOrdem().First()))
+                query = query.OrderBy(campoParaOrdenar);
+            
+            return query;
+        }
+
+        return (await ObterQueryComIncludes()).OrderByDescending(x => x.CreationDate);
+    }
+
+    protected async Task<IQueryable<T>> ObterQueryComIncludes()
+    {
+        var query = await ObterQueryable();
+        if (ObterIncludes() is not null && ObterIncludes().Any())
+        {
+            foreach (var tabelaFilha in ObterIncludes())
+                query = query.Include(tabelaFilha);
+        }
+
+        return query;
+    }
+
     /// <summary>
-    /// Retorna a query com os Includes utilizada
+    /// Retorna uma coleção de expressões que irão ser aplicadas para trazer as entidades filhas.
+    /// As expressões devem retornar o nome da entidade filha que devem ser populada.
     /// </summary>
-    protected abstract IQueryable<T> ObterQueryComDetalhes();
+    protected abstract IEnumerable<Expression<Func<T, object>>> ObterIncludes();
+
+    /// <summary>
+    /// Retorna uma coleção de expressões que irão ser aplicadas para ordenar as queries.
+    /// As expressões devem retornar o nome da entidade filha que devem ser populada.
+    /// Se a lista estiver vazia ou nula, as queries serão ordenadas pela data de criação da entidade
+    /// de maneira descendente
+    /// </summary>
+    protected abstract IEnumerable<Expression<Func<T, object>>> ObterOrdem();
 
     protected int SaveChanges() => _context.SaveChanges();
 
     protected async Task SaveChangesAsync() => await _context.SaveChangesAsync();
 
-    public Task<IQueryable<T>> GetQueryable() => Task.FromResult(DbSet.AsQueryable());
+    /// <summary>
+    /// Retorna a query com os includes das entidades filhas aplicadas
+    /// </summary>
+    public Task<IQueryable<T>> ObterQueryable() => Task.FromResult(DbSet.AsQueryable());
 }

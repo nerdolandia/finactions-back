@@ -7,12 +7,12 @@ namespace FinActions.Domain.Base
 {
     public interface IBaseRepository<T> where T : BaseEntity
     {
-        Task<IQueryable<T>> GetQueryable();
-        Task<T> Inserir(T entity, Guid idUsuario);
-        Task<T> Atualizar(T entity, Guid idUsuario);
-        Task<T> Excluir(T entity, Guid idUsuario);
+        Task<IQueryable<T>> ObterQueryable();
+        Task<T> Inserir(T entity);
+        Task<T> Atualizar(T entity);
+        Task<T> Excluir(T entity);
         Task<T> ObterPorId(Guid id);
-        Task<IEnumerable<T>> ObterPaginadoComFiltros(int take, int skip, IQueryable<T> queryComFiltros);
+        Task<IEnumerable<T>> ObterPaginadoComFiltros(int take, int skip, Func<T, bool> filtros);
         Task<int> Contar();
     }
 }

@@ -1,6 +1,6 @@
+using System.Linq.Expressions;
 using FinActions.Domain.Usuarios;
 using FinActions.Infrastructure.Context;
-using Microsoft.EntityFrameworkCore;
 
 namespace FinActions.Infrastructure.Repositories;
 
@@ -10,12 +10,18 @@ public class UsuarioRepository : BaseRepository<Usuario>, IUsuarioRepository
     {
     }
 
-    public Task<Usuario> ObterPorEmail(string email)
+    public async Task<Usuario> ObterPorEmail(string email)
     {
-        return Task.FromResult(ObterQueryComDetalhes()
-                                .First(x => x.Email == email));
+        var query = await ObterQueryComIncludesEOrdem();
+
+        return query.First(x => x.Email == email);
     }
 
-    protected override IQueryable<Usuario> ObterQueryComDetalhes()
-        => DbSet.Include(x => x.Papeis);
+    protected override IEnumerable<Expression<Func<Usuario, object>>> ObterIncludes() => new List<Expression<Func<Usuario, object>>>() { (Usuario x) => x.Papeis };
+
+    public Task<bool> EhEmailExistente(string email) => Task.FromResult(DbSet.Any(x => x.Email == email));
+
+    public Task<bool> EhUsuarioExistente(Guid id) => Task.FromResult(DbSet.Any(x => x.Id == id));
+
+    protected override IEnumerable<Expression<Func<Usuario, object>>> ObterOrdem() => new List<Expression<Func<Usuario, object>>>() { (Usuario x) => x.Nome };
 }
