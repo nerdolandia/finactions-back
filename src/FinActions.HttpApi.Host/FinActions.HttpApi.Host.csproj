@@ -15,7 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\FinActions.Contracts\FinActions.Contracts.csproj" />
     <ProjectReference Include="..\FinActions.Application\FinActions.Application.csproj" />
-    <ProjectReference Include="..\FinActions.Infrastructure\FinActions.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
