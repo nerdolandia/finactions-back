@@ -7,7 +7,6 @@ public class Usuario : BaseEntity
     public string Nome { get; set; } = null!;
     public string Email { get; set; } = null!;
     public string Senha { get; set; } = null!;
-    public DateTime CreationTime { get; set; }
     public IEnumerable<Papeis.Papel> Papeis { get; set; } = new List<Papeis.Papel>();
     public string Salt { get; set; } = null!;
 }
