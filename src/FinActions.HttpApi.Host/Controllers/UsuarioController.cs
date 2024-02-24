@@ -1,7 +1,5 @@
 using FinActions.Application.Token;
-using FinActions.Application.Usuarios;
 using FinActions.Contracts.Response;
-using FinActions.Contracts.Token;
 using FinActions.Contracts.Usuario;
 using FinActions.Domain.Usuarios;
 using Microsoft.AspNetCore.Mvc;

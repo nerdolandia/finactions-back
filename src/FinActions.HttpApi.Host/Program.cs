@@ -13,8 +13,7 @@ var connectionStrings = builder
 builder.Services
     .Configure<JwtOptions>(builder.Configuration.GetRequiredSection(nameof(JwtOptions)))
     .Configure<ConnectionStrings>(builder.Configuration.GetRequiredSection(nameof(ConnectionStrings)))
-    .AddInfrastructureServices(connectionStrings)
-    .AddApplicationServices()
+    .AddApplicationServices(connectionStrings)
     .AddAuthenticationServices()
     .AddSwaggerServices()
     .AddEndpointsApiExplorer()

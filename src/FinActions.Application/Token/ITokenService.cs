@@ -4,5 +4,5 @@ namespace FinActions.Application.Token;
 
 public interface ITokenService
 {
-    Task<string> Gerar(PostTokenDto dadosLogin);
+    Task<LoginDto> Gerar(PostTokenDto dadosLogin);
 }

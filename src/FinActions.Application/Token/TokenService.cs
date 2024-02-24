@@ -20,23 +20,28 @@ public class TokenService : ITokenService
         _jwtOptions = jwtOptions.Value;
     }
 
-    public async Task<string> Gerar(PostTokenDto dadosLogin)
+    public async Task<LoginDto> Gerar(PostTokenDto dadosLogin)
     {
         var usuario = await _usuarioRepository.ObterPorEmail(dadosLogin.Email);
 
         var key = Encoding.ASCII.GetBytes(_jwtOptions.SecurityKey);
 
-        var subject = new ClaimsIdentity();
-        subject.AddClaim(new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()));
-        subject.AddClaim(new Claim(ClaimTypes.Name, usuario.Nome));
-        subject.AddClaim(new Claim(ClaimTypes.Email, usuario.Email));
-        subject.AddClaims(usuario.Papeis.Select(x => new Claim(ClaimTypes.Role, x.Nome)));
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+            new(ClaimTypes.Name, usuario.Nome),
+            new(ClaimTypes.Email, usuario.Email),
+            new(ClaimTypes.Expiration,DateTimeOffset.UtcNow.AddSeconds(_jwtOptions.ExpirationInSeconds).ToString())
+        };
+        claims.AddRange(usuario.Papeis.Select(x => new Claim(ClaimTypes.Role, x.Nome)));
+
+        var identity = new ClaimsIdentity(claims);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Audience = _jwtOptions.Audience,
             Issuer = _jwtOptions.Issuer,
-            Subject = subject,
+            Subject = identity,
             IssuedAt = DateTime.UtcNow,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                                                         SecurityAlgorithms.HmacSha256Signature),
@@ -44,7 +49,9 @@ public class TokenService : ITokenService
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+        string token = tokenHandler.WriteToken(securityToken);
+
+        return new LoginDto(identity, token);
     }
 }

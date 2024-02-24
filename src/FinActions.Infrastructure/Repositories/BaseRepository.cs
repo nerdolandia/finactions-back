@@ -25,13 +25,11 @@ public abstract class BaseRepository<T> : IBaseRepository<T> where T : BaseEntit
 
     public async Task<IEnumerable<T>> ObterPaginadoComFiltros(int skip, int take, Func<T, bool> filtros)
     {
-        var query = (await ObterQueryComIncludesEOrdem())
-                        .AsNoTracking()
-                        .Where(filtros)
-                        .Skip(skip)
-                        .Take(take);
+        var query = await ObterQueryComIncludesEOrdem();
 
-        var entities = query.AsEnumerable();
+        var entities = query.Where(filtros)
+                            .Skip(skip)
+                            .Take(take);
         return entities;
     }
 
@@ -69,22 +67,25 @@ public abstract class BaseRepository<T> : IBaseRepository<T> where T : BaseEntit
 
     protected async Task<IOrderedQueryable<T>> ObterQueryComIncludesEOrdem()
     {
+        var query = await ObterQueryComIncludes();
+
         if (ObterOrdem() is not null && ObterOrdem().Any())
         {
-            var query = (await ObterQueryComIncludes()).OrderBy(ObterOrdem().First());
+            var orderedQuery = query.OrderBy(ObterOrdem().First());
 
             foreach (var campoParaOrdenar in ObterOrdem().Where(x => x != ObterOrdem().First()))
-                query = query.OrderBy(campoParaOrdenar);
-            
-            return query;
+                orderedQuery = orderedQuery.OrderBy(campoParaOrdenar);
+
+            return orderedQuery;
         }
 
-        return (await ObterQueryComIncludes()).OrderByDescending(x => x.CreationDate);
+        return query.OrderByDescending(x => x.CreationDate);
     }
 
     protected async Task<IQueryable<T>> ObterQueryComIncludes()
     {
         var query = await ObterQueryable();
+
         if (ObterIncludes() is not null && ObterIncludes().Any())
         {
             foreach (var tabelaFilha in ObterIncludes())
@@ -112,8 +113,5 @@ public abstract class BaseRepository<T> : IBaseRepository<T> where T : BaseEntit
 
     protected async Task SaveChangesAsync() => await _context.SaveChangesAsync();
 
-    /// <summary>
-    /// Retorna a query com os includes das entidades filhas aplicadas
-    /// </summary>
     public Task<IQueryable<T>> ObterQueryable() => Task.FromResult(DbSet.AsQueryable());
 }
