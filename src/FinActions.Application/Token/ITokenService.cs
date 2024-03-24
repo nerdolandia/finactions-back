@@ -1,8 +1,8 @@
-using FinActions.Domain.Usuario;
+using FinActions.Contracts.Token;
 
 namespace FinActions.Application.Token;
 
 public interface ITokenService
 {
-    Task<string> Gerar(Domain.Usuario.Usuario usuario);
+    Task<LoginDto> Gerar(PostTokenDto dadosLogin);
 }

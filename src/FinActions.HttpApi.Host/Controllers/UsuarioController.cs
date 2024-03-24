@@ -1,8 +1,7 @@
-using FinActions.Application.Usuario;
+using FinActions.Application.Token;
 using FinActions.Contracts.Response;
 using FinActions.Contracts.Usuario;
-using FinActions.Domain.Usuario;
-using Microsoft.AspNetCore.Authorization;
+using FinActions.Domain.Usuarios;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinActions.HttpApi.Host.Controllers;
@@ -12,10 +11,14 @@ namespace FinActions.HttpApi.Host.Controllers;
 public class UsuarioController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;
+    private readonly ITokenService _tokenService;
 
-    public UsuarioController(IUsuarioService usuarioService)
+    public UsuarioController(
+        IUsuarioService usuarioService,
+        ITokenService tokenService)
     {
         _usuarioService = usuarioService;
+        _tokenService = tokenService;
     }
 
     [HttpGet("")]

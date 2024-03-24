@@ -1,7 +1,7 @@
 using FinActions.Domain.Base;
 using FinActions.Domain.Categorias;
-using FinActions.Domain.Usuario;
-using FinActions.Domain.Usuario.Papel;
+using FinActions.Domain.Usuarios;
+using FinActions.Domain.Usuarios.Papeis;
 using FinActions.Infrastructure.Configurations;
 using Microsoft.EntityFrameworkCore;
 
