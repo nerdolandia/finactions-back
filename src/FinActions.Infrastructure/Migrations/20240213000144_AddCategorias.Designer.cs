@@ -3,6 +3,7 @@ using System;
 using FinActions.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FinActions.Infrastructure.Migrations
 {
     [DbContext(typeof(FinActionsContext))]
-    partial class FinActionsContextModelSnapshot : ModelSnapshot
+    [Migration("20240213000144_AddCategorias")]
+    partial class AddCategorias
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,47 +67,35 @@ namespace FinActions.Infrastructure.Migrations
                     b.ToTable("Categorias");
                 });
 
-            modelBuilder.Entity("FinActions.Domain.Usuarios.Papeis.Papel", b =>
+            modelBuilder.Entity("FinActions.Domain.Usuario.Papel.Papel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Nome")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Nome")
+                    b.HasIndex("Name")
                         .IsUnique();
 
                     b.ToTable("Papeis");
                 });
 
-            modelBuilder.Entity("FinActions.Domain.Usuarios.Usuario", b =>
+            modelBuilder.Entity("FinActions.Domain.Usuario.Usuario", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreationDate")
+                    b.Property<DateTime>("CreationTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("DeletedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("EditedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("EditedDate")
+                    b.Property<DateTime?>("DeletedTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -120,15 +111,9 @@ namespace FinActions.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<string>("Salt")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
                     b.Property<string>("Senha")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -138,7 +123,7 @@ namespace FinActions.Infrastructure.Migrations
                     b.ToTable("Usuarios");
                 });
 
-            modelBuilder.Entity("FinActions.Domain.Usuarios.UsuarioPapel", b =>
+            modelBuilder.Entity("FinActions.Domain.Usuario.UsuarioPapel", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -159,16 +144,16 @@ namespace FinActions.Infrastructure.Migrations
                     b.ToTable("UsuariosPapeis");
                 });
 
-            modelBuilder.Entity("FinActions.Domain.Usuarios.UsuarioPapel", b =>
+            modelBuilder.Entity("FinActions.Domain.Usuario.UsuarioPapel", b =>
                 {
-                    b.HasOne("FinActions.Domain.Usuarios.Papeis.Papel", "Papel")
-                        .WithMany()
+                    b.HasOne("FinActions.Domain.Usuario.Papel.Papel", "Papel")
+                        .WithMany("UsuariosPapeis")
                         .HasForeignKey("PapelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FinActions.Domain.Usuarios.Usuario", "Usuario")
-                        .WithMany()
+                    b.HasOne("FinActions.Domain.Usuario.Usuario", "Usuario")
+                        .WithMany("UsuariosPapeis")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -176,6 +161,16 @@ namespace FinActions.Infrastructure.Migrations
                     b.Navigation("Papel");
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("FinActions.Domain.Usuario.Papel.Papel", b =>
+                {
+                    b.Navigation("UsuariosPapeis");
+                });
+
+            modelBuilder.Entity("FinActions.Domain.Usuario.Usuario", b =>
+                {
+                    b.Navigation("UsuariosPapeis");
                 });
 #pragma warning restore 612, 618
         }

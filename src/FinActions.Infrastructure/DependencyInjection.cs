@@ -1,5 +1,7 @@
 using FinActions.Domain.AppSettings;
+using FinActions.Domain.Categorias;
 using FinActions.Infrastructure.Context;
+using FinActions.Infrastructure.Repositories.Categorias;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FinActions.Infrastructure;
@@ -12,6 +14,7 @@ public static class DependencyInjection
     {
         services.AddNpgsql<FinActionsContext>(connectionStrings.Default);
         services.AddTransient<Domain.Usuarios.IUsuarioRepository, Repositories.UsuarioRepository>();
+        services.AddTransient<ICategoriaRepository, CategoriaRepository>();
 
         return services;
     }

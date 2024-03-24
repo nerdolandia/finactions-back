@@ -11,6 +11,7 @@ public static class DependencyInjection
     {
         services.AddInfrastructureServices(connectionStrings);
         services.AddTransient<Contracts.Usuario.IUsuarioService, Application.Usuarios.UsuarioService>();
+        services.AddTransient<Application.Categorias.ICategoriaService, Application.Categorias.CategoriaService>();
         services.AddTransient<Application.Token.ITokenService, Application.Token.TokenService>();
 
         return services;
