@@ -22,7 +22,7 @@ namespace FinActions.HttpApi.Host.Controllers
         {
             _categoriaService = categoriaService;
         }
-        
+
         [HttpGet("")]
         public async Task<ResultadoPaginadoDto<CategoriaDTO>> GetAsync(
             [FromQuery] GetCategoriaDto parametros
@@ -34,10 +34,12 @@ namespace FinActions.HttpApi.Host.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync([FromRoute] Guid id)
         {
-            try{
+            try
+            {
                 return Ok(await _categoriaService.ObterPorId(id));
             }
-            catch(Exception ex){
+            catch (Exception ex)
+            {
                 return NotFound("Categoria não existe");
             }
         }
@@ -46,10 +48,12 @@ namespace FinActions.HttpApi.Host.Controllers
             [FromBody] InsertCategoriaDto insertCategoria
         )
         {
-            try{
+            try
+            {
                 return Ok(await _categoriaService.Inserir(insertCategoria));
             }
-            catch(Exception ex){
+            catch (Exception ex)
+            {
                 return BadRequest("Categoria já existe");
             }
         }
@@ -59,10 +63,12 @@ namespace FinActions.HttpApi.Host.Controllers
             [FromBody] UpdateCategoriaDto updateCategoria
         )
         {
-            try{
+            try
+            {
                 return Ok(await _categoriaService.Atualizar(id, updateCategoria));
             }
-            catch(Exception ex){
+            catch (Exception ex)
+            {
                 return NotFound("Categoria não existe");
             }
 
@@ -70,10 +76,12 @@ namespace FinActions.HttpApi.Host.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsync([FromRoute] Guid id)
         {
-            try{
+            try
+            {
                 return Ok(await _categoriaService.Excluir(id));
             }
-            catch(Exception ex){
+            catch (Exception ex)
+            {
                 return NotFound("Categoria não existe");
             }
         }
