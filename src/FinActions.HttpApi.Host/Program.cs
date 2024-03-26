@@ -10,11 +10,15 @@ var connectionStrings = builder
                         .Configuration
                         .GetRequiredSection(nameof(ConnectionStrings))
                         .Get<ConnectionStrings>()!;
+var jwtOptions = builder
+                    .Configuration
+                    .GetRequiredSection(nameof(JwtOptions))
+                    .Get<JwtOptions>()!;
 builder.Services
-    .Configure<JwtOptions>(builder.Configuration.GetRequiredSection(nameof(JwtOptions)))
-    .Configure<ConnectionStrings>(builder.Configuration.GetRequiredSection(nameof(ConnectionStrings)))
+    .Configure<JwtOptions>(x => x = jwtOptions)
+    .Configure<ConnectionStrings>(x => x = connectionStrings)
     .AddApplicationServices(connectionStrings)
-    .AddAuthenticationServices()
+    .AddAuthenticationServices(jwtOptions)
     .AddSwaggerServices()
     .AddEndpointsApiExplorer()
     .AddHttpContextAccessor()
@@ -30,8 +34,8 @@ application
     .UseHttpsRedirection();
 
 application
-    .UseAuthorization()
-    .UseAuthentication();
+    .UseAuthentication()
+    .UseAuthorization();
 
 application.MapControllers();
 

@@ -8,7 +8,7 @@ namespace FinActions.HttpApi.Host;
 
 public static class SetupExtensions
 {
-    public static IServiceCollection AddAuthenticationServices(this IServiceCollection services)
+    public static IServiceCollection AddAuthenticationServices(this IServiceCollection services, JwtOptions options)
     {
         services.AddAuthentication(x =>
         {
@@ -16,17 +16,21 @@ public static class SetupExtensions
             x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
         .AddJwtBearer(x =>
+        {
+            x.Audience = options.Audience;
+            x.Authority = options.Issuer;
+            x.RequireHttpsMetadata = false;
+            x.SaveToken = true;
+            x.TokenValidationParameters = new TokenValidationParameters
             {
-                x.RequireHttpsMetadata = false;
-                x.SaveToken = true;
-                x.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("minhaPalavraPasseNaoEhFacilFacil")),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                };
-            });
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(options.SecurityKey)),
+                ValidateIssuer = true,
+                ValidIssuer = options.Issuer,
+                ValidateAudience = true,
+                ValidAudience = options.Audience
+            };
+        });
 
         return services;
     }
