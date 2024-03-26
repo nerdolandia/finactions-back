@@ -30,8 +30,7 @@ public class TokenService : ITokenService
         {
             new(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
             new(ClaimTypes.Name, usuario.Nome),
-            new(ClaimTypes.Email, usuario.Email),
-            new(ClaimTypes.Expiration,DateTimeOffset.UtcNow.AddSeconds(_jwtOptions.ExpirationInSeconds).ToString())
+            new(ClaimTypes.Email, usuario.Email)
         };
         claims.AddRange(usuario.Papeis.Select(x => new Claim(ClaimTypes.Role, x.Nome)));
 
