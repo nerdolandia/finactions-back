@@ -2,10 +2,12 @@ using FinActions.Application.Token;
 using FinActions.Contracts.Response;
 using FinActions.Contracts.Usuario;
 using FinActions.Domain.Usuarios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinActions.HttpApi.Host.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class UsuarioController : ControllerBase
