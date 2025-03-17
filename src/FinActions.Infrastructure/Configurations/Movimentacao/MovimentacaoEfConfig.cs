@@ -13,13 +13,13 @@ public class MovimentacaoEfConfig : IEntityTypeConfiguration<Movimentacao>
 
         builder.HasOne(x => x.Categoria)
                 .WithMany(x => x.Movimentacoes)
-                .HasForeignKey(x => new { x.CategoriaId, x.UserId })
+                .HasForeignKey(x => x.CategoriaId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
 
         builder.HasOne(x => x.ContaBancaria)
                 .WithMany(x => x.Movimentacoes)
-                .HasForeignKey(x => new { x.ContaBancariaId, x.UserId })
+                .HasForeignKey(x => x.ContaBancariaId)
                 .OnDelete(DeleteBehavior.Restrict);
 
         builder.Property(x => x.DataCriacao)
@@ -42,7 +42,8 @@ public class MovimentacaoEfConfig : IEntityTypeConfiguration<Movimentacao>
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
 
-        builder.HasKey(x => new { x.UserId, x.Id });
+        builder.HasIndex(x => x.UserId)
+                .IsUnique();
 
         builder.Property(x => x.IsDeleted)
                 .HasDefaultValue(false);

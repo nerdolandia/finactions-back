@@ -24,10 +24,8 @@ namespace FinActions.Infrastructure.Migrations
 
             modelBuilder.Entity("FinActions.Domain.Categorias.Categoria", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("DataCriacao")
@@ -49,17 +47,21 @@ namespace FinActions.Infrastructure.Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(150)");
 
-                    b.HasKey("UserId", "Id");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Categorias", (string)null);
                 });
 
             modelBuilder.Entity("FinActions.Domain.ContasBancarias.ContaBancaria", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("DataCriacao")
@@ -87,7 +89,13 @@ namespace FinActions.Infrastructure.Migrations
                     b.Property<byte>("TipoConta")
                         .HasColumnType("smallint");
 
-                    b.HasKey("UserId", "Id");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("ContasBancarias", (string)null);
                 });
@@ -171,10 +179,8 @@ namespace FinActions.Infrastructure.Migrations
 
             modelBuilder.Entity("FinActions.Domain.Movimentacoes.Movimentacao", b =>
                 {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("CategoriaId")
@@ -216,14 +222,20 @@ namespace FinActions.Infrastructure.Migrations
                     b.Property<byte>("TipoMovimentacao")
                         .HasColumnType("smallint");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal>("ValorMovimentado")
                         .HasColumnType("money");
 
-                    b.HasKey("UserId", "Id");
+                    b.HasKey("Id");
 
-                    b.HasIndex("CategoriaId", "UserId");
+                    b.HasIndex("CategoriaId");
 
-                    b.HasIndex("ContaBancariaId", "UserId");
+                    b.HasIndex("ContaBancariaId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Movimentacoes", (string)null);
                 });
@@ -405,22 +417,22 @@ namespace FinActions.Infrastructure.Migrations
 
             modelBuilder.Entity("FinActions.Domain.Movimentacoes.Movimentacao", b =>
                 {
-                    b.HasOne("FinActions.Domain.Identity.AppUser", "User")
-                        .WithMany("Movimentacoes")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("FinActions.Domain.Categorias.Categoria", "Categoria")
                         .WithMany("Movimentacoes")
-                        .HasForeignKey("CategoriaId", "UserId")
+                        .HasForeignKey("CategoriaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("FinActions.Domain.ContasBancarias.ContaBancaria", "ContaBancaria")
                         .WithMany("Movimentacoes")
-                        .HasForeignKey("ContaBancariaId", "UserId")
+                        .HasForeignKey("ContaBancariaId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FinActions.Domain.Identity.AppUser", "User")
+                        .WithMany("Movimentacoes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Categoria");
