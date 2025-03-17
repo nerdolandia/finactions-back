@@ -52,6 +52,7 @@ public class CategoriaService : ICategoriaService
 
         return TypedResults.Ok(result);
     }
+
     public async Task<Results<Ok<CategoriaResponseDto>, ProblemHttpResult>> ObterPorId(IdsCategoriaRequestDto idsCategoriaRequestDto)
     {
         var dbEntity = await _context.Categorias
@@ -84,7 +85,7 @@ public class CategoriaService : ICategoriaService
         var mappedEntity = _mapper.Map<PostCategoriaRequestDto, Categoria>(categoriaRequestDto);
 
         var dbEntity = await _context.Categorias.FirstOrDefaultAsync(x => x.Nome == categoriaRequestDto.Nome
-                                                    && x.UserId == categoriaRequestDto.userId);
+                                                                        && x.UserId == categoriaRequestDto.userId);
 
         var validationEntity = _validator.DbEntityObject(dbEntity)
                                             .ApplyInsertRules()
@@ -110,7 +111,7 @@ public class CategoriaService : ICategoriaService
 
         var mappedEntity = _mapper.Map<PostCategoriaRequestDto, Categoria>(categoriaRequestDto);
 
-        var dbEntity = await _context.Categorias.FindAsync(id, categoriaRequestDto.userId);
+        var dbEntity = await _context.Categorias.FirstOrDefaultAsync(x => x.Id == id && x.UserId == categoriaRequestDto.userId);
 
         var validationEntity = _validator.DbEntityObject(dbEntity)
                                             .ApplyUpdateRules()
@@ -131,7 +132,8 @@ public class CategoriaService : ICategoriaService
 
     public async Task<Results<NoContent, ProblemHttpResult>> Delete(IdsCategoriaRequestDto idsCategoriaRequestDto)
     {
-        var dbEntity = await _context.Categorias.FindAsync(idsCategoriaRequestDto.id, idsCategoriaRequestDto.userId);
+        var dbEntity = await _context.Categorias.FirstOrDefaultAsync(x => x.Id == idsCategoriaRequestDto.id
+                                                                         && x.UserId == idsCategoriaRequestDto.userId);
 
         var validationEntity = _validator.DbEntityObject(dbEntity)
                                             .ApplyDeleteRules()
