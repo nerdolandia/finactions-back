@@ -39,18 +39,12 @@ public class CategoriaValidator : BaseValidator, ICategoriaValidator
                 x => x.Nome.Length > 150,
                 CategoriaValidatorConsts.ErroCategoriaJaExiste,
                 nameof(requestObject.Nome)
-            )
-        .AddValidation<GetCategoriaRequestDto>
-        (
-            x => x.Take == 0,
-            CategoriaValidatorConsts.ErroQuantidadeQuery,
-            nameof(requestObject.Take)
-        );
+            );
     }
 
     private void ValidatePostRequest(PostCategoriaRequestDto requestObject)
     {
-        base.AddValidation<PostCategoriaRequestDto>(x => x.Nome.Length > 150,
+        AddValidation<PostCategoriaRequestDto>(x => x.Nome.Length > 150,
                                                     CategoriaValidatorConsts.ErroTamanhoNome,
                                                     nameof(requestObject.Nome));
 
@@ -59,7 +53,7 @@ public class CategoriaValidator : BaseValidator, ICategoriaValidator
     public ICategoriaValidator ApplyInsertRules()
         => AddEntityValidation<DomainModel.Categoria>
             (
-                x => x is not null && !x.IsDeleted,
+                x => x is not null || !x.IsDeleted,
                 CategoriaValidatorConsts.ErroCategoriaJaExiste,
                 nameof(CategoriaValidatorConsts.ErroCategoriaJaExiste),
                 StatusCodes.Status400BadRequest
