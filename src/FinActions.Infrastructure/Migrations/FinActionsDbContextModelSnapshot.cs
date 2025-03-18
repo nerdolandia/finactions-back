@@ -52,8 +52,7 @@ namespace FinActions.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Categorias", (string)null);
                 });
@@ -94,8 +93,7 @@ namespace FinActions.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("ContasBancarias", (string)null);
                 });
@@ -234,8 +232,7 @@ namespace FinActions.Infrastructure.Migrations
 
                     b.HasIndex("ContaBancariaId");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("Movimentacoes", (string)null);
                 });

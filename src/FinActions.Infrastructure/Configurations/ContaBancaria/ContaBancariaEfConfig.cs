@@ -30,8 +30,7 @@ public class ContaBancariaEfConfig : IEntityTypeConfiguration<ContaBancaria>
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
 
-        builder.HasIndex(x => x.UserId)
-                .IsUnique();
+        builder.HasIndex(x => x.UserId);
 
         builder.Property(x => x.IsDeleted)
                 .HasDefaultValue(false);

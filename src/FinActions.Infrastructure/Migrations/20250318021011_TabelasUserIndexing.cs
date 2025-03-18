@@ -25,20 +25,17 @@ namespace FinActions.Infrastructure.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Movimentacoes_UserId",
                 table: "Movimentacoes",
-                column: "UserId",
-                unique: true);
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ContasBancarias_UserId",
                 table: "ContasBancarias",
-                column: "UserId",
-                unique: true);
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Categorias_UserId",
                 table: "Categorias",
-                column: "UserId",
-                unique: true);
+                column: "UserId");
         }
 
         /// <inheritdoc />
