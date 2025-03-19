@@ -27,8 +27,7 @@ public class CategoriaEfConfig : IEntityTypeConfiguration<Categoria>
                 .OnDelete(DeleteBehavior.Cascade)
                 .IsRequired();
 
-        builder.HasIndex(x => new { x.UserId, x.Id })
-                .IsUnique();
+        builder.HasIndex(x => x.UserId);
 
         builder.Property(x => x.IsDeleted)
                 .HasDefaultValue(false);
