@@ -2,6 +2,7 @@ using AutoMapper;
 using FinActions.Application.Base.Responses;
 using FinActions.Application.ContasBancarias.Contracts.Requests;
 using FinActions.Application.ContasBancarias.Contracts.Responses;
+using FinActions.Application.Validations.ContaBancaria;
 using FinActions.Domain.ContasBancarias;
 using FinActions.Domain.Shared.ContasBancarias;
 using FinActions.Infrastructure.EntityFrameworkCore;
@@ -17,15 +18,18 @@ public sealed class ContaBancariaService : IContaBancariaService
     private readonly FinActionsDbContext _context;
     private readonly IMapper _mapper;
     private readonly ILogger<ContaBancariaService> _logger;
+    private readonly IContaBancariaValidator _validator;
 
     public ContaBancariaService(
         ILogger<ContaBancariaService> logger,
         FinActionsDbContext context,
-        IMapper mapper)
+        IMapper mapper,
+        IContaBancariaValidator validator)
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
+        _validator = validator;
     }
 
     public async Task<Results<NoContent, ProblemHttpResult>> Delete(Guid contaBancariaId, Guid userId)
@@ -36,16 +40,15 @@ public sealed class ContaBancariaService : IContaBancariaService
                                             && x.Id == contaBancariaId)
                                     .FirstOrDefaultAsync();
 
-        if (contaBancaria is null)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status404NotFound,
-                    title: ContaBancariaConsts.ErroContaBancariaNaoEncontrada,
-                    type: nameof(ContaBancariaConsts.ErroContaBancariaNaoEncontrada));
-        }
+        var validation = _validator.DbEntityObject(contaBancaria)
+                                    .ApplyDeleteRules()
+                                    .ValidateEntity(out var isValid);
+        
+        if(!isValid)
+            return TypedResults.Problem(validation);
 
         contaBancaria.IsDeleted = true;
-        contaBancaria.DataModificacao = DateTimeOffset.Now;
+        contaBancaria.DataModificacao = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync();
 
         return TypedResults.NoContent();
@@ -57,29 +60,11 @@ public sealed class ContaBancariaService : IContaBancariaService
     {
         insertRequest.UserId = userId;
 
-        if (string.IsNullOrEmpty(insertRequest.Nome))
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: ContaBancariaConsts.ErroContaBancariaNomeVazio,
-                    type: nameof(ContaBancariaConsts.ErroContaBancariaNomeVazio));
-        }
+        var validation = _validator.ModelObject(insertRequest)
+                                    .ValidateModel(out bool isValid);
 
-        if (insertRequest.Nome.Length > 150)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: ContaBancariaConsts.ErroContaBancariaNomeTamanhoMax,
-                    type: nameof(ContaBancariaConsts.ErroContaBancariaNomeTamanhoMax));
-        }
-
-        if (insertRequest.Saldo < decimal.MinValue && insertRequest.Saldo > decimal.MaxValue)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: ContaBancariaConsts.ErroContaBancariaSaldoInvalido,
-                    type: nameof(ContaBancariaConsts.ErroContaBancariaSaldoInvalido));
-        }
+        if(!isValid)
+            return TypedResults.Problem(validation);
 
         var contaBancaria = _mapper.Map<PostPutContaBancariaRequestDto, ContaBancaria>(insertRequest);
         var contaBancariaDb = (await _context.ContasBancarias.AddAsync(contaBancaria)).Entity;
@@ -128,13 +113,12 @@ public sealed class ContaBancariaService : IContaBancariaService
                                             && x.Id == contaBancariaId)
                                     .FirstOrDefaultAsync();
 
-        if (contaBancaria is null)
-        {
-            return TypedResults.Problem(
-                statusCode: StatusCodes.Status404NotFound,
-                title: ContaBancariaConsts.ErroContaBancariaNaoEncontrada,
-                type: ContaBancariaConsts.ErroContaBancariaNaoEncontradaType);
-        }
+        var entityValidation = _validator.DbEntityObject(contaBancaria)
+                                            .ApplyGetByIdRules()
+                                            .ValidateEntity(out var isValid);
+
+        if(!isValid)
+            return TypedResults.Problem(entityValidation);
 
         return TypedResults.Ok(_mapper.Map<ContaBancaria, ContaBancariaResponseDto>(contaBancaria));
     }
@@ -144,35 +128,24 @@ public sealed class ContaBancariaService : IContaBancariaService
         Guid userId,
         PostPutContaBancariaRequestDto updateRequest)
     {
+        var validation = _validator.ModelObject(updateRequest)
+                                    .ValidateModel(out var isValid);
+
+        if(!isValid)
+            return TypedResults.Problem(validation);
+
         var contaBancaria = await _context.ContasBancarias
                                     .Where(x => x.UserId == userId
                                             && !x.IsDeleted
                                             && x.Id == contaBancariaId)
                                     .FirstOrDefaultAsync();
 
-        if (contaBancaria is null)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status404NotFound,
-                    title: ContaBancariaConsts.ErroContaBancariaNaoEncontrada,
-                    type: nameof(ContaBancariaConsts.ErroContaBancariaNaoEncontrada));
-        }
+        var entityValidation = _validator.DbEntityObject(contaBancaria)
+                                            .ApplyUpdateRules()
+                                            .ValidateEntity(out var isEntityValid);
 
-        if (string.IsNullOrEmpty(updateRequest.Nome))
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: ContaBancariaConsts.ErroContaBancariaNomeVazio,
-                    type: nameof(ContaBancariaConsts.ErroContaBancariaNomeVazio));
-        }
-
-        if (updateRequest.Nome.Length > 150)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: ContaBancariaConsts.ErroContaBancariaNomeTamanhoMax,
-                    type: nameof(ContaBancariaConsts.ErroContaBancariaNomeTamanhoMax));
-        }
+        if(!isEntityValid)
+            return TypedResults.Problem(entityValidation);
 
         contaBancaria.Nome = updateRequest.Nome;
         contaBancaria.TipoConta = updateRequest.TipoConta;

@@ -7,8 +7,7 @@ namespace FinActions.Application.Validations.Categoria;
 
 public class CategoriaValidator : BaseValidator, ICategoriaValidator
 {
-    protected override string ModelValidationTitle { get; init; } = "Erro de validação da request de categorias";
-    protected override string EntityValidationTitle { get; init; } = "Erro de validação do banco de dados";
+    protected override string ModelValidationTitle { get; init; } = "Erro de validação da request de categoria(s)";
 
     public ICategoriaValidator ModelObject(object validationObject)
     {
@@ -22,7 +21,7 @@ public class CategoriaValidator : BaseValidator, ICategoriaValidator
         return this;
     }
 
-    public override ProblemDetails ValidateModel(out bool isValid)
+    public override ValidationProblemDetails ValidateModel(out bool isValid)
     {
         if (_validationObject is GetCategoriaRequestDto getCategoriaRequest)
             ValidateGetRequest(getCategoriaRequest);
