@@ -3,6 +3,6 @@ namespace FinActions.Application.Validations.Base;
 
 public interface IBaseValidator
 {
-    ProblemDetails ValidateModel(out bool isValid);
-    ProblemDetails ValidateEntity(out bool isValid);
+    ValidationProblemDetails ValidateModel(out bool isValid);
+    ValidationProblemDetails ValidateEntity(out bool isValid);
 }

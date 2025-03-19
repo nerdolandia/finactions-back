@@ -10,7 +10,7 @@ public abstract class BaseValidator : IBaseValidator
     protected private object _validationObject { get; set; }
     protected private object _validationEntity { get; set; }
     protected abstract string ModelValidationTitle { get; init; }
-    protected abstract string EntityValidationTitle { get; init; }
+    protected string EntityValidationTitle { get; init; } = "Erro de validação do banco de dados";
     private ModelValidationDto _modelValidationDto { get; set; } = new();
     private EntityValidationDto _entityValidationDto { get; set; } = new();
 
@@ -42,7 +42,7 @@ public abstract class BaseValidator : IBaseValidator
     }
 
 
-    public virtual ProblemDetails ValidateModel(out bool isValid)
+    public virtual ValidationProblemDetails ValidateModel(out bool isValid)
     {
         isValid = _isValid;
 
@@ -56,11 +56,11 @@ public abstract class BaseValidator : IBaseValidator
 
     }
 
-    public ProblemDetails ValidateEntity(out bool isValid)
+    public ValidationProblemDetails ValidateEntity(out bool isValid)
     {
         isValid = _isValid;
 
-        return new ProblemDetails
+        return new ValidationProblemDetails
         {
             Title = _entityValidationDto.Title,
             Detail = _entityValidationDto.Description,
