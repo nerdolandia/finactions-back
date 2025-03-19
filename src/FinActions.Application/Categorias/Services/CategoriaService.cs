@@ -27,11 +27,6 @@ public class CategoriaService : ICategoriaService
 
     public async Task<Results<Ok<PagedResultDto<CategoriaResponseDto>>, ProblemHttpResult>> ObterCategorias(GetCategoriaRequestDto categoriaRequestDto, Guid userId)
     {
-        _validator.ModelObject(categoriaRequestDto);
-        var validationResult = _validator.ValidateModel(out bool isValid);
-        if (!isValid)
-            return TypedResults.Problem(validationResult);
-
         var query = _context.Categorias
                         .AsNoTracking()
                         .Where(x => x.UserId == userId && !x.IsDeleted);
@@ -55,15 +50,7 @@ public class CategoriaService : ICategoriaService
 
     public async Task<Results<Ok<CategoriaResponseDto>, ProblemHttpResult>> ObterPorId(IdsCategoriaRequestDto idsCategoriaRequestDto)
     {
-        var dbEntity = await _context.Categorias
-                                .AsNoTracking()
-                                .Where
-                                (
-                                    x => x.UserId == idsCategoriaRequestDto.userId
-                                        && x.Id == idsCategoriaRequestDto.id
-                                        && !x.IsDeleted
-                                )
-                                .FirstOrDefaultAsync();
+        var dbEntity = await _context.Categorias.FindAsync(idsCategoriaRequestDto.userId, idsCategoriaRequestDto.id);
 
         var validation = _validator.DbEntityObject(dbEntity)
                                     .ApplyGetByIdRules()
@@ -113,6 +100,7 @@ public class CategoriaService : ICategoriaService
 
         var dbEntity = await _context.Categorias.FirstOrDefaultAsync(x => x.Id == id && x.UserId == categoriaRequestDto.userId);
 
+
         var validationEntity = _validator.DbEntityObject(dbEntity)
                                             .ApplyUpdateRules()
                                             .ValidateEntity(out var isEntityValid);
@@ -121,7 +109,7 @@ public class CategoriaService : ICategoriaService
             return TypedResults.Problem(validationEntity);
 
         dbEntity.Nome = categoriaRequestDto.Nome;
-        dbEntity.DataModificacao = DateTimeOffset.Now;
+        dbEntity.DataModificacao = DateTimeOffset.UtcNow;
 
         var saveResults = await _context.SaveChangesAsync();
 
@@ -143,7 +131,7 @@ public class CategoriaService : ICategoriaService
             return TypedResults.Problem(validationEntity);
 
         dbEntity.IsDeleted = true;
-        dbEntity.DataModificacao = DateTimeOffset.Now;
+        dbEntity.DataModificacao = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync();
 
         return TypedResults.NoContent();

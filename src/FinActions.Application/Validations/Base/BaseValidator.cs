@@ -6,36 +6,36 @@ namespace FinActions.Application.Validations.Base;
 
 public abstract class BaseValidator : IBaseValidator
 {
-    private bool _isValid { get; set; }
+    private bool _isValid { get; set; } = true;
     protected private object _validationObject { get; set; }
     protected private object _validationEntity { get; set; }
     protected abstract string ModelValidationTitle { get; init; }
     protected abstract string EntityValidationTitle { get; init; }
-    private ModelValidationDto _modelValidationDto = new();
-    private EntityValidationDto _entityValidationDto { get; set; }
+    private ModelValidationDto _modelValidationDto { get; set; } = new();
+    private EntityValidationDto _entityValidationDto { get; set; } = new();
 
 
-    protected private virtual IBaseValidator AddValidation<T>(Predicate<T> predicate, string mensagemErro, string campo = "")
+    protected private virtual IBaseValidator AddValidation<T>(Predicate<T> invalidConditions, string errorMessage, string campo = "")
     {
-        if (!predicate((T)_validationObject))
+        if (invalidConditions((T)_validationObject))
         {
             _isValid = false;
 
-            if (_modelValidationDto.errors.ContainsKey(campo))
-                _modelValidationDto.errors[campo].Append(mensagemErro);
+            if (_modelValidationDto.Errors.ContainsKey(campo))
+                _modelValidationDto.Errors[campo].Append(errorMessage);
             else
-                _modelValidationDto.errors.Add(campo, new string[] { mensagemErro });
+                _modelValidationDto.Errors.Add(campo, [errorMessage]);
         }
 
         return this;
     }
 
-    protected private virtual IBaseValidator AddEntityValidation<T>(Predicate<T> predicate, string mensagemErro, string type, int statusCode)
+    protected private virtual IBaseValidator AddEntityValidation<T>(Predicate<T> invalidConditions, string errorMessage, string type, int statusCode)
     {
-        if (!predicate((T)_validationEntity))
+        if (invalidConditions((T)_validationEntity))
         {
             _isValid = false;
-            _entityValidationDto = new EntityValidationDto(EntityValidationTitle, mensagemErro, type, statusCode);
+            _entityValidationDto = new EntityValidationDto(EntityValidationTitle, errorMessage, type, statusCode);
         }
 
         return this;
@@ -45,12 +45,13 @@ public abstract class BaseValidator : IBaseValidator
     public virtual ProblemDetails ValidateModel(out bool isValid)
     {
         isValid = _isValid;
+
         return new ValidationProblemDetails
         {
-            Title = _modelValidationDto.title,
+            Title = _modelValidationDto.Title,
             Status = StatusCodes.Status400BadRequest,
-            Detail = $"Erro(s) de validação(ões) em {_modelValidationDto.errors.Count} itens",
-            Errors = _modelValidationDto.errors
+            Detail = $"Erro(s) de validação(ões) em {_modelValidationDto.Errors.Count} itens",
+            Errors = _modelValidationDto.Errors
         };
 
     }
@@ -58,13 +59,13 @@ public abstract class BaseValidator : IBaseValidator
     public ProblemDetails ValidateEntity(out bool isValid)
     {
         isValid = _isValid;
+
         return new ProblemDetails
         {
-            Title = _entityValidationDto.title,
-            Detail = _entityValidationDto.description,
-            Type = _entityValidationDto.type,
-            Status = _entityValidationDto.statusCode
+            Title = _entityValidationDto.Title,
+            Detail = _entityValidationDto.Description,
+            Type = _entityValidationDto.Type,
+            Status = _entityValidationDto.StatusCode
         };
-
     }
 }
