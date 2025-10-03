@@ -56,11 +56,11 @@ public abstract class BaseValidator : IBaseValidator
 
     }
 
-    public ProblemDetails ValidateEntity(out bool isValid)
+    public ValidationProblemDetails ValidateEntity(out bool isValid)
     {
         isValid = _isValid;
 
-        return new ProblemDetails
+        return new ValidationProblemDetails
         {
             Title = _entityValidationDto.Title,
             Detail = _entityValidationDto.Description,

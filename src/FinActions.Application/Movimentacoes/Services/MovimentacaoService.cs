@@ -3,6 +3,7 @@ using FinActions.Application.Base.Responses;
 using FinActions.Application.Movimentacoes.Contracts.Requests;
 using FinActions.Application.Movimentacoes.Contracts.Responses;
 using FinActions.Application.Movimentacoes.Services;
+using FinActions.Application.Validations.Movimentacao;
 using FinActions.Domain.Movimentacoes;
 using FinActions.Domain.Shared.ContasBancarias;
 using FinActions.Domain.Shared.Movimentacoes;
@@ -19,15 +20,19 @@ public sealed class MovimentacaoService : IMovimentacaoService
     private readonly FinActionsDbContext _context;
     private readonly IMapper _mapper;
     private readonly ILogger<MovimentacaoService> _logger;
+    private readonly IMovimentacaoValidator _validator;
 
     public MovimentacaoService(
         ILogger<MovimentacaoService> logger,
         FinActionsDbContext context,
-        IMapper mapper)
+        IMapper mapper,
+        IMovimentacaoValidator validator
+        )
     {
         _logger = logger;
         _context = context;
         _mapper = mapper;
+        _validator = validator;
     }
 
     public async Task<Results<NoContent, ProblemHttpResult>> Delete(Guid MovimentacaoId, Guid userId)
@@ -56,51 +61,11 @@ public sealed class MovimentacaoService : IMovimentacaoService
         PostPutMovimentacaoRequestDto insertRequest,
         Guid userId)
     {
-        if (string.IsNullOrEmpty(insertRequest.Descricao))
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: MovimentacaoConsts.ErroMovimentacaoDescricaoVazio,
-                    type: nameof(MovimentacaoConsts.ErroMovimentacaoDescricaoVazio));
-        }
-        if (insertRequest.Descricao.Length > MovimentacaoConsts.DescricaoMaxLength)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: MovimentacaoConsts.ErroMovimentacaoNomeTamanhoMax,
-                    type: nameof(MovimentacaoConsts.ErroMovimentacaoNomeTamanhoMax));
-        }
-        if (insertRequest.ValorMovimentado <= 0 || insertRequest.ValorMovimentado > decimal.MaxValue)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: MovimentacaoConsts.ErroValorMovimentadoInvalido,
-                    type: nameof(MovimentacaoConsts.ErroValorMovimentadoInvalido));
-        }
-        if (insertRequest.DataMovimentacao > DateTimeOffset.MaxValue
-            || insertRequest.DataMovimentacao < DateTimeOffset.MinValue)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: MovimentacaoConsts.ErroDataMovimentacaoInvalida,
-                    type: nameof(MovimentacaoConsts.ErroDataMovimentacaoInvalida));
-        }
-        if (insertRequest.ContaBancariaId == Guid.Empty
-            || !await _context.ContasBancarias.AnyAsync(x => x.Id == insertRequest.ContaBancariaId))
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: ContaBancariaConsts.ErroContaBancariaNaoEncontrada,
-                    type: nameof(ContaBancariaConsts.ErroContaBancariaNaoEncontrada));
-        }
-        if (insertRequest.CategoriaId == Guid.Empty
-            || !await _context.Categorias.AnyAsync(x => x.Id == insertRequest.CategoriaId))
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: "Categoria não existe",
-                    type: "ErroCategoriaNaoEncontrada");
-        }
+        var validation = _validator.ModelObject(insertRequest)
+                                    .ValidateModel(out var isValid);
+
+        if (!isValid)
+            return TypedResults.Problem(validation);
 
         var movimentacao = _mapper.Map<PostPutMovimentacaoRequestDto, Movimentacao>(insertRequest);
         movimentacao.UserId = userId;
@@ -190,64 +155,24 @@ public sealed class MovimentacaoService : IMovimentacaoService
         Guid userId,
         PostPutMovimentacaoRequestDto updateRequest)
     {
+        var validation = _validator.ModelObject(updateRequest)
+                                    .ValidateModel(out var isValid);
+
+        if (!isValid)
+            return TypedResults.Problem(validation);
+
         var movimentacao = await _context.Movimentacoes
                                     .Where(x => x.UserId == userId
                                             && !x.IsDeleted
                                             && x.Id == MovimentacaoId)
                                     .FirstOrDefaultAsync();
-        
-        if (movimentacao is null)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status404NotFound,
-                    title: MovimentacaoConsts.ErroMovimentacaoNaoEncontrada,
-                    type: nameof(MovimentacaoConsts.ErroMovimentacaoNaoEncontrada));
-        }
-        if (string.IsNullOrEmpty(updateRequest.Descricao))
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: MovimentacaoConsts.ErroMovimentacaoDescricaoVazio,
-                    type: nameof(MovimentacaoConsts.ErroMovimentacaoDescricaoVazio));
-        }
-        if (updateRequest.Descricao.Length > MovimentacaoConsts.DescricaoMaxLength)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: MovimentacaoConsts.ErroMovimentacaoNomeTamanhoMax,
-                    type: nameof(MovimentacaoConsts.ErroMovimentacaoNomeTamanhoMax));
-        }
-        if (updateRequest.ValorMovimentado <= 0 || updateRequest.ValorMovimentado > decimal.MaxValue)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: MovimentacaoConsts.ErroValorMovimentadoInvalido,
-                    type: nameof(MovimentacaoConsts.ErroValorMovimentadoInvalido));
-        }
-        if (updateRequest.DataMovimentacao > DateTimeOffset.MaxValue
-            || updateRequest.DataMovimentacao < DateTimeOffset.MinValue)
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: MovimentacaoConsts.ErroDataMovimentacaoInvalida,
-                    type: nameof(MovimentacaoConsts.ErroDataMovimentacaoInvalida));
-        }
-        if (updateRequest.ContaBancariaId == Guid.Empty
-            || !await _context.ContasBancarias.AnyAsync(x => x.Id == updateRequest.ContaBancariaId))
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: ContaBancariaConsts.ErroContaBancariaNaoEncontrada,
-                    type: nameof(ContaBancariaConsts.ErroContaBancariaNaoEncontrada));
-        }
-        if (updateRequest.CategoriaId == Guid.Empty
-            || !await _context.Categorias.AnyAsync(x => x.Id == updateRequest.CategoriaId))
-        {
-            return TypedResults.Problem(
-                    statusCode: StatusCodes.Status400BadRequest,
-                    title: "Categoria não existe",
-                    type: "ErroCategoriaNaoEncontrada");
-        }
+
+        var entityValidation = _validator.DbEntityObject(movimentacao)
+                                            .ApplyUpdateRules()
+                                            .ValidateEntity(out var isEntityValid);
+
+        if(!isEntityValid)
+            return TypedResults.Problem(entityValidation);
 
         movimentacao.TipoMovimentacao = updateRequest.TipoMovimentacao;
         movimentacao.Descricao = updateRequest.Descricao;
